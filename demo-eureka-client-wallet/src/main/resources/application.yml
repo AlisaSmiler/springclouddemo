@@ -9,3 +9,42 @@ server:
 spring:
   application:
     name: service-wallet
+
+  datasource:
+    driverClass: com.mysql.jdbc.Driver
+    url: jdbc:mysql://120.24.227.90:3306/1hhd?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false
+    username: root
+    password: 123456
+    type: com.alibaba.druid.pool.DruidDataSource
+    # --- DruidDataSource setting ----
+    filters: stat,wall,log4j
+    initialSize: 1
+    minIdle: 1
+    maxActive: 20
+    maxWait: 60000
+    minEvictableIdleTimeMillis: 300000
+    removeAbandoned: true
+    removeAbandonedTimeout: 1800
+    validationQuery: select 1
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    timeBetweenEvictionRunsMillis: 60000
+    poolPreparedStatements: true
+    maxOpenPreparedStatements: 20
+    logAbandoned: true
+    connectionProperties: stat.mergeSql=true;stat.slowSqlMillis=5000
+    useGlobalDataSourceStat: true
+  redis:
+    database: 0
+    host: 192.168.0.13
+    port: 6379
+    password:
+    pool:
+      max-idle: 100
+      min-idle: 1
+      max-active: 1000
+      max-wait: 100
+myconfig:
+  zookeeper:
+    url: 127.0.0.1:2181

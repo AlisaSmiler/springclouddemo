@@ -12,6 +12,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring.boot.version>1.5.4.RELEASE</spring.boot.version>
         <spring.cloud.version>1.3.1.RELEASE</spring.cloud.version>
+
+        <!-- plugin setting -->
+        <mybatis.generator.generatorConfig.properties>file:///${basedir}/src/main/resources/generator/config.properties
+        </mybatis.generator.generatorConfig.properties>
+
+        <!-- Java接口和实体类 -->
+        <targetJavaProject>${basedir}/src/main/java</targetJavaProject>
+        <targetMapperPackage>com.xiajianhx.demo.springcloud.netflix.client.dao</targetMapperPackage>
+        <targetModelPackage>com.xiajianhx.demo.springcloud.netflix.client.bean</targetModelPackage>
+        <!-- XML生成路径 -->
+        <targetResourcesProject>${basedir}/src/main/java</targetResourcesProject>
+        <targetXMLPackage>com.xiajianhx.demo.springcloud.netflix.client.dao</targetXMLPackage>
     </properties>
 
     <dependencies>
@@ -28,23 +40,117 @@
             <version>${spring.cloud.version}</version>
         </dependency>
 
-        <!--&lt;!&ndash;基于zookeeper分布式锁&ndash;&gt;-->
-        <!--&lt;!&ndash; 提供zookeeper整合的包 &ndash;&gt;-->
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.cloud</groupId>-->
-            <!--<artifactId>spring-cloud-starter-zookeeper-config</artifactId>-->
-        <!--</dependency>-->
-        <!--&lt;!&ndash; springboot 提供监听的 &ndash;&gt;-->
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.boot</groupId>-->
-            <!--<artifactId>spring-boot-starter-actuator</artifactId>-->
-            <!--&lt;!&ndash;<version>${spring.boot.version}</version>&ndash;&gt;-->
-        <!--</dependency>-->
-
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
             <version>3.4.10</version>
         </dependency>
+
+        <!--db-->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.29</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-redis</artifactId>
+            <version>1.4.5.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>tk.mybatis</groupId>
+            <artifactId>mapper</artifactId>
+            <version>3.4.0</version>
+        </dependency>
+        <!-- druid多数据源 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>1.0.29</version>
+        </dependency>
+
+        <!-- activemq support
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-activemq</artifactId>
+        </dependency> -->
+
+        <!--redis 支持-->
+        <!--<dependency>-->
+            <!--<groupId>redis.clients</groupId>-->
+            <!--<artifactId>jedis</artifactId>-->
+            <!--<version>2.7.3</version>-->
+        <!--</dependency>-->
+        <!--redis 连接池支持-->
+        <!--<dependency>-->
+            <!--<groupId>commons-pool</groupId>-->
+            <!--<artifactId>commons-pool</artifactId>-->
+            <!--<version>1.6</version>-->
+        <!--</dependency>-->
+
+        <!-- fastjson引用 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.29</version>
+        </dependency>
+
+        <!--lombok-->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.16</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Mybatis generator代码生成插件 运行Run As Maven build : Goals 参数 : mybatis-generator:generate -->
+                <plugin>
+                    <groupId>org.mybatis.generator</groupId>
+                    <artifactId>mybatis-generator-maven-plugin</artifactId>
+                    <version>1.3.2</version>
+                    <configuration>
+                        <configurationFile>${basedir}/src/main/resources/generator/generatorConfig.xml
+                        </configurationFile>
+                        <overwrite>true</overwrite>
+                        <verbose>true</verbose>
+                    </configuration>
+
+                    <dependencies>
+                        <dependency>
+                            <groupId>mysql</groupId>
+                            <artifactId>mysql-connector-java</artifactId>
+                            <version>5.1.29</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>tk.mybatis</groupId>
+                            <artifactId>mapper</artifactId>
+                            <version>3.4.0</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <configuration>
+                        <encoding>UTF-8</encoding>
+                        <!-- 过滤后缀为pem、pfx的证书文件 -->
+                        <nonFilteredFileExtensions>
+                            <nonFilteredFileExtension>pem</nonFilteredFileExtension>
+                            <nonFilteredFileExtension>pfx</nonFilteredFileExtension>
+                            <nonFilteredFileExtension>p12</nonFilteredFileExtension>
+                        </nonFilteredFileExtensions>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>

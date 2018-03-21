@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xiajianhx.demo.springcloud.netflix.client.dao.BaoSeckillGoodsMapper" >
+  <resultMap id="BaseResultMap" type="com.xiajianhx.demo.springcloud.netflix.client.bean.BaoSeckillGoods" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="goods_no" property="goodsNo" jdbcType="VARCHAR" />
+    <result column="goods_name" property="goodsName" jdbcType="VARCHAR" />
+    <result column="stock_num" property="stockNum" jdbcType="INTEGER" />
+    <result column="start_time" property="startTime" jdbcType="BIGINT" />
+    <result column="end_time" property="endTime" jdbcType="BIGINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+  </resultMap>
+</mapper>
