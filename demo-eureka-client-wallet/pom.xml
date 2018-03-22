@@ -60,8 +60,8 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-redis</artifactId>
-            <version>1.4.5.RELEASE</version>
         </dependency>
+
         <dependency>
             <groupId>tk.mybatis</groupId>
             <artifactId>mapper</artifactId>
@@ -74,24 +74,11 @@
             <version>1.0.29</version>
         </dependency>
 
-        <!-- activemq support
+        <!-- activemq support-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-activemq</artifactId>
-        </dependency> -->
-
-        <!--redis 支持-->
-        <!--<dependency>-->
-            <!--<groupId>redis.clients</groupId>-->
-            <!--<artifactId>jedis</artifactId>-->
-            <!--<version>2.7.3</version>-->
-        <!--</dependency>-->
-        <!--redis 连接池支持-->
-        <!--<dependency>-->
-            <!--<groupId>commons-pool</groupId>-->
-            <!--<artifactId>commons-pool</artifactId>-->
-            <!--<version>1.6</version>-->
-        <!--</dependency>-->
+        </dependency>
 
         <!-- fastjson引用 -->
         <dependency>
@@ -106,6 +93,11 @@
             <artifactId>lombok</artifactId>
             <version>1.16.16</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jms</artifactId>
+            <version>4.2.6.RELEASE</version>
         </dependency>
     </dependencies>
 

@@ -45,6 +45,11 @@ spring:
       min-idle: 1
       max-active: 1000
       max-wait: 100
+  activemq:
+    broker-url: tcp://localhost:61616
+    in-memory: true
+    pool:
+      enabled: false
 myconfig:
   zookeeper:
     url: 127.0.0.1:2181

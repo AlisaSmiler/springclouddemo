@@ -29,4 +29,20 @@ public class ResultTemplate<T> {
         this.code = code;
         this.msg = msg;
     }
+
+    public static ResultTemplate fail(String msg){
+        return new ResultTemplate<>(1, msg, null);
+    }
+
+    public static ResultTemplate fail(){
+        return fail("处理失败");
+    }
+
+    public static ResultTemplate success(Object response) {
+        return new ResultTemplate<>(0, "处理成功", response);
+    }
+
+    public static ResultTemplate success() {
+        return success(null);
+    }
 }
