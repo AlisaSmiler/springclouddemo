@@ -28,11 +28,6 @@ public interface SeckillService {
     ResultTemplate querySeckillResult(String mobile);
 
 //    /**
-//     * 执行秒杀【做分布式锁排队执行】
-//     */
-//    void execSeckill();
-
-//    /**
 //     * 失败执行秒杀【重试先不做，如果是支付类型，建议重试，并且保证幂等性】
 //     */
 //    void retrySeckill();

@@ -12,4 +12,5 @@ public class GlobalConfig {
         return new ZKDistributedLock(GlobalConfig.ZK_URL, lockName);
     }
 
+    public static final String SECKILL_MQ_NAME =  "mq_seckill_name";
 }

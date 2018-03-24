@@ -4,14 +4,16 @@ import com.alibaba.fastjson.JSON;
 import com.xiajianhx.demo.springcloud.netflix.client.bean.BaoSeckillGoods;
 import com.xiajianhx.demo.springcloud.netflix.client.bean.BaoSeckillResult;
 import com.xiajianhx.demo.springcloud.netflix.client.config.GlobalConfig;
-import com.xiajianhx.demo.springcloud.netflix.client.config.SeckillStausEnum;
 import com.xiajianhx.demo.springcloud.netflix.client.dao.BaoSeckillGoodsMapper;
 import com.xiajianhx.demo.springcloud.netflix.client.dao.BaoSeckillResultMapper;
 import com.xiajianhx.demo.springcloud.netflix.client.service.SeckillService;
 import com.xiajianhx.demo.springcloud.netflix.client.util.caches.CacheService;
+import com.xiajianhx.demo.springcloud.netflix.client.util.mq.MQProducer;
 import com.xiajianhx.demo.springcloud.netflix.client.vo.ResultTemplate;
+import com.xiajianhx.demo.springcloud.netflix.client.vo.UserSeckillVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -36,6 +38,8 @@ public class SeckillServiceImpl implements SeckillService {
 
     @Autowired
     private CacheService cacheService;
+    @Autowired
+    private MQProducer mqProducer;
 
     @Autowired
     private BaoSeckillGoodsMapper baoSeckillGoodsMapper;
@@ -74,7 +78,6 @@ public class SeckillServiceImpl implements SeckillService {
         }
     }
 
-
     // 是否需要分布式锁--最后再套，先做单机
     // 秒杀商品是否存在
     // 商品是否在秒杀时间内
@@ -82,26 +85,27 @@ public class SeckillServiceImpl implements SeckillService {
     // 用户是否重复秒杀
     // 设置布隆过滤器
     // 放入消息队列中
+    @Transactional
     @Override
     public ResultTemplate requestSeckill(String mobile, String goodsNo, String token) {
+        // 签名校验--后端为每个商品生成相应的签名md5，然后前端传入
+        if (!generateSeckillToken(mobile, goodsNo).equals(token)) {
+            throw new RuntimeException("臭不要脸，作弊！！！");
+        }
+
+        if (!cacheService.exists(goodsNo)) {
+            throw new RuntimeException("商品不存在");
+        }
+
+        BaoSeckillGoods goods = JSON.parseObject((String) cacheService.get(goodsNo), BaoSeckillGoods.class);
+        if (goods.getStartTime() > System.currentTimeMillis() || goods.getEndTime() < System.currentTimeMillis()) {
+            return ResultTemplate.fail("商品秒杀已结束");
+        }
 
         // 分布式锁 减库存，生成秒杀记录
         Lock lock = GlobalConfig.getDistributedLock("test1");
         lock.lock();
         try {
-            // 签名校验--后端为每个商品生成相应的签名md5，然后前端传入
-            if (!generateSeckillToken(mobile, goodsNo).equals(token)) {
-                throw new RuntimeException("臭不要脸，作弊！！！");
-            }
-
-            if (!cacheService.exists(goodsNo)) {
-                throw new RuntimeException("商品不存在");
-            }
-
-            BaoSeckillGoods goods = JSON.parseObject((String) cacheService.get(goodsNo), BaoSeckillGoods.class);
-            if (goods.getStartTime() > System.currentTimeMillis() || goods.getEndTime() < System.currentTimeMillis()) {
-                return ResultTemplate.fail("商品秒杀已结束");
-            }
             // 库存从cachez中获取
             String seckillRecordKey = USER_SECKILL_RECORD_PREFIX + goodsNo + "_" + mobile;
             if (cacheService.get(seckillRecordKey) != null) {
@@ -110,28 +114,23 @@ public class SeckillServiceImpl implements SeckillService {
 
             // 查看库存
             String stockKey = getStockKey(goodsNo);
-            long stockNum = (long)cacheService.get(stockKey);
+            long stockNum = (long) cacheService.get(stockKey);
             if (stockNum <= 0) {
                 return ResultTemplate.fail("手慢啦，商品已被抢完");
             }
 
             // 库存 -1
             cacheService.inscrease(stockKey, -1);
-            // 生成秒杀成功记录
-            BaoSeckillResult record = new BaoSeckillResult();
-            record.setMobile(mobile);
-            record.setGoodsNo(goodsNo);
-            record.setStatus(SeckillStausEnum.SUCESS.getKey());
-            record.setCreateTime(System.currentTimeMillis());
-            int count = baoSeckillResultMapper.insertSelective(record);
-            System.out.println("用户:" + mobile + "商品:" + goodsNo + "秒杀结果:" + count);
+
+            // 交给mq处理
+            mqProducer.sendMessage(GlobalConfig.SECKILL_MQ_NAME, JSON.toJSONString(new UserSeckillVO(goodsNo, mobile)));
 
             // 置已经秒杀成功过
             cacheService.set(seckillRecordKey, 1);
             return ResultTemplate.success();
         } catch (Exception e) {
             e.printStackTrace();
-            return ResultTemplate.fail("秒杀失败，请稍后再试");
+            throw new RuntimeException("秒杀失败，请稍后再试");
         } finally {
             lock.unlock();
         }
@@ -147,10 +146,6 @@ public class SeckillServiceImpl implements SeckillService {
         record.setMobile(mobile);
         return ResultTemplate.success(baoSeckillResultMapper.select(record));
     }
-
-//    @Override
-//    public void execSeckill() {
-//    }
 
     // @Override
     // public void retrySeckill() {
