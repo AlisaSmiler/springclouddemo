@@ -16,6 +16,7 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
@@ -30,14 +31,13 @@ public class RedisCacheService implements CacheService {
     @Autowired
     private RedisTemplate redisTemplate;
 
-    @Autowired(required = false)
-    public void setRedisTemplate(RedisTemplate redisTemplate) {
+    @PostConstruct
+    public void setRedisTemplate() {
         StringRedisSerializer stringSerializer = new StringRedisSerializer();
         redisTemplate.setKeySerializer(stringSerializer);
         redisTemplate.setHashKeySerializer(stringSerializer);
         redisTemplate.setValueSerializer(stringSerializer);
         redisTemplate.setHashValueSerializer(stringSerializer);
-        this.redisTemplate = redisTemplate;
     }
 
     /**
@@ -278,6 +278,12 @@ public class RedisCacheService implements CacheService {
     public void sRemove(String key, Object value) {
         SetOperations<String, Object> set = redisTemplate.opsForSet();
         set.remove(key, value);
+    }
+
+    @Override
+    public long inscrease(String key, long value) {
+        ValueOperations<String, Integer> values = redisTemplate.opsForValue();
+        return values.increment(key, value);
     }
 
     /**

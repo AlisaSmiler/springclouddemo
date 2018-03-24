@@ -39,4 +39,13 @@ public interface CacheService {
     void sAdd(String key, Object value);
 
     void sRemove(String key, Object value);
+
+    /**
+     * Redis自增操作
+     * @param key
+     * @param value
+     * @return
+     */
+    long inscrease(final String key, long value);
+
 }

@@ -15,12 +15,12 @@ public interface SeckillService {
      */
     List<BaoSeckillGoods> querySeckillGoods(String mobile);
 
-    ResultTemplate exposeSeckillUrl(String mobile, String goodsNo);
+    String generateSeckillToken(String mobile, String goodsNo);
 
     /**
      * 用户请求秒杀【手机作为主键】
      */
-    ResultTemplate requestSeckill(String mobile, String goodsNo, String sign);
+    ResultTemplate requestSeckill(String mobile, String goodsNo, String token);
 
     /**
      * 用户查询秒杀结果【浏览器不做推送】

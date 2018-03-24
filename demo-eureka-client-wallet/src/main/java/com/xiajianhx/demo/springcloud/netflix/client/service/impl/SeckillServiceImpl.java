@@ -12,8 +12,16 @@ import com.xiajianhx.demo.springcloud.netflix.client.vo.UserSeckillVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
+/**
+ * 初版不做消息队列，直接同步返回，用分布式锁就好
+ *  redis实例 -- >库存详情
+ *  db实例 --> mysql
+ *  zookeeper实例 --> 执行时的分布式锁
+ */
 @Service
 public class SeckillServiceImpl implements SeckillService {
 
@@ -25,31 +33,60 @@ public class SeckillServiceImpl implements SeckillService {
     @Autowired
     private MQProducer mqProducer;
 
+    private static final String salt = "sdjfysodyur23872-348B%^^&&%$78";
+    // 用户秒杀记录 防止重复秒杀
     private static final String USER_SECKILL_RECORD_PREFIX = "user_seckill_record_";
+    // 库存数量
+    private static final String SECKILL_STOCK_NUM_PREFIX = "stock_";
+    // 用户秒杀请求
+    private static final String USER_SECKILL_REQUEST_PREFIX = "seckill_request_";
+    // 商品记录
+    private static final String SECKILL_GOODS_LIST = "seckill_goods";
 
-
-    // redis实例 -- >库存详情
-    // db实例 --> mysql
-    // zookeeper实例 --> 执行时的分布式锁
     @Override
     public List<BaoSeckillGoods> querySeckillGoods(String mobile) {
         // 查询做频率限制
-        String seckillKey = SeckillKeyEnum.query.getPrefix() + mobile;
+        String seckillKey = USER_SECKILL_REQUEST_PREFIX + mobile;
         if (cacheService.exists(seckillKey)) {
             throw new RuntimeException("您的操作过于频繁，请稍后再试！！！");
         }
-        cacheService.set(seckillKey, 0, SeckillKeyEnum.query.getTimeout());
-        return  baoSeckillGoodsMapper.selectAll();
+
+
+        cacheService.set(seckillKey, 0, 1000L);
+
+        // 缓存中load入缓存
+        if (!cacheService.exists(SECKILL_GOODS_LIST)) {
+            cacheService.set(SECKILL_GOODS_LIST, JSON.toJSONString(baoSeckillGoodsMapper.selectAll()));
+        }
+        List<BaoSeckillGoods> goodsList = JSON.parseArray((String) cacheService.get(SECKILL_GOODS_LIST), BaoSeckillGoods.class);
+
+        // 库存从Redis中获取
+        for (BaoSeckillGoods goods : goodsList) {
+            goods.setStockNum((int)cacheService.get(SECKILL_STOCK_NUM_PREFIX + goods.getGoodsNo()));
+        }
+        return goodsList;
     }
 
     @Override
-    public ResultTemplate exposeSeckillUrl(String mobile, String goodsNo) {
-        return null;
+    public String generateSeckillToken(String mobile, String goodsNo) {
+        String plainText = mobile + goodsNo + salt;
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            // 后端生成的加密串放入前端隐藏域中，到时候再自动提交过来
+            byte[] md5Bytes = md.digest(plainText.getBytes()));
+            return new String(md5Bytes);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            throw new RuntimeException("token生成失败");
+        }
     }
 
     @Override
-    public ResultTemplate requestSeckill(String mobile, String goodsNo, String sign) {
-        // 签名校验--后端为每个商品生成相应的签名md5某某某，然后前端传入
+    public ResultTemplate requestSeckill(String mobile, String goodsNo, String token) {
+        // 签名校验--后端为每个商品生成相应的签名md5，然后前端传入
+        if (!generateSeckillToken(mobile, goodsNo).equals(token)) {
+            throw new RuntimeException("你臭不要脸，作弊！！！");
+        }
 
         // 查询做频率限制
         String seckillKey = SeckillKeyEnum.request.getPrefix() + mobile;
@@ -64,12 +101,11 @@ public class SeckillServiceImpl implements SeckillService {
         // 用户是否重复秒杀
         // 设置布隆过滤器
         // 放入消息队列中
-        if (!cacheService.exists(goodsNo)){
+        if (!cacheService.exists(goodsNo)) {
             throw new RuntimeException("商品不存在");
         }
-        BaoSeckillGoods goods = JSON.parseObject((String)cacheService.get(goodsNo), BaoSeckillGoods.class);
-        if (goods.getStartTime() > System.currentTimeMillis()
-                || goods.getEndTime() < System.currentTimeMillis()) {
+        BaoSeckillGoods goods = JSON.parseObject((String) cacheService.get(goodsNo), BaoSeckillGoods.class);
+        if (goods.getStartTime() > System.currentTimeMillis() || goods.getEndTime() < System.currentTimeMillis()) {
             return ResultTemplate.fail("商品秒杀已结束");
         }
         if (goods.getStockNum() <= 0) {
