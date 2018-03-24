@@ -20,9 +20,6 @@ public class UserSeckillVO {
      */
     private String goodsNo;
 
-    /**
-     * 库存数量
-     */
     private String mobile;
 
 }
