@@ -18,7 +18,7 @@ public class MyBatisMapperScannerConfig {
 	public MapperScannerConfigurer mapperScannerConfigurer() {
 		MapperScannerConfigurer mapperScannerConfigurer = new MapperScannerConfigurer();
 		mapperScannerConfigurer.setSqlSessionFactoryBeanName("sqlSessionFactory");
-		mapperScannerConfigurer.setBasePackage("com.midou.allflow.dao");
+		mapperScannerConfigurer.setBasePackage("com.xiajianhx.demo.springcloud.netflix.client.dao");
 		Properties properties = new Properties();
 		properties.setProperty("mappers", BaseDao.class.getName());
 		properties.setProperty("notEmpty", "false");

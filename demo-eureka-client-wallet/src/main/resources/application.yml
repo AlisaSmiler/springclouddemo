@@ -9,10 +9,12 @@ server:
 spring:
   application:
     name: service-wallet
+  session:
+    store-type: none
 
   datasource:
     driverClass: com.mysql.jdbc.Driver
-    url: jdbc:mysql://120.24.227.90:3306/1hhd?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false
+    url: jdbc:mysql://192.168.1.206:3306/myseckill?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false
     username: root
     password: 123456
     type: com.alibaba.druid.pool.DruidDataSource
@@ -37,19 +39,19 @@ spring:
     useGlobalDataSourceStat: true
   redis:
     database: 0
-    host: 192.168.0.13
+    host: 192.168.1.206
     port: 6379
-    password:
+    password: 123456
     pool:
       max-idle: 100
       min-idle: 1
       max-active: 1000
       max-wait: 100
-  activemq:
-    broker-url: tcp://localhost:61616
-    in-memory: true
-    pool:
-      enabled: false
+#  activemq:
+#    broker-url: tcp://192.168.1.206:61616
+#    in-memory: true
+#    pool:
+#      enabled: false
 myconfig:
   zookeeper:
-    url: 127.0.0.1:2181
+    url: 192.168.1.206:2181

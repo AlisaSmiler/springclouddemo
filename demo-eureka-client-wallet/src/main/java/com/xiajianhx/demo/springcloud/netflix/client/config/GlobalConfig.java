@@ -13,4 +13,5 @@ public class GlobalConfig {
     }
 
     public static final String SECKILL_MQ_NAME =  "mq_seckill_name";
+
 }

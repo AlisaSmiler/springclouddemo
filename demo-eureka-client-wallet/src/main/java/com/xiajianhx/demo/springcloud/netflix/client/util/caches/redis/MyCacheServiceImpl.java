@@ -3,7 +3,7 @@
  */
 package com.xiajianhx.demo.springcloud.netflix.client.util.caches.redis;
 
-import com.xiajianhx.demo.springcloud.netflix.client.util.caches.CacheService;
+import com.xiajianhx.demo.springcloud.netflix.client.util.caches.MyCacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.core.HashOperations;
@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  * @author lisa
  */
 @Service
-public class RedisCacheService implements CacheService {
+public class MyCacheServiceImpl implements MyCacheService {
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -37,7 +37,7 @@ public class RedisCacheService implements CacheService {
         redisTemplate.setKeySerializer(stringSerializer);
         redisTemplate.setHashKeySerializer(stringSerializer);
         redisTemplate.setValueSerializer(stringSerializer);
-        redisTemplate.setHashValueSerializer(stringSerializer);
+        redisTemplate.setHashValueSerializer(stringSerializer);// Unsatisfied
     }
 
     /**
@@ -221,6 +221,12 @@ public class RedisCacheService implements CacheService {
     public Object hmGet(String key, Object hashKey) {
         HashOperations<String, Object, Object> hash = redisTemplate.opsForHash();
         return hash.get(key, hashKey);
+    }
+
+    @Override
+    public List<Object> hmGetValues(String key) {
+        HashOperations<String, Object, Object> hash = redisTemplate.opsForHash();
+        return hash.values(key);
     }
 
     /**

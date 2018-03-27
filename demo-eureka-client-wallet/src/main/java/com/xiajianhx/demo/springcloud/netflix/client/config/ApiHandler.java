@@ -1,6 +1,6 @@
 package com.xiajianhx.demo.springcloud.netflix.client.config;
 
-import com.xiajianhx.demo.springcloud.netflix.client.util.caches.CacheService;
+import com.xiajianhx.demo.springcloud.netflix.client.util.caches.MyCacheService;
 import org.apache.log4j.Logger;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -24,7 +24,7 @@ public class ApiHandler {
     private Logger logger = Logger.getLogger(getClass());
 
     @Autowired
-    private CacheService cacheService;
+    private MyCacheService myCacheService;
 
     private ThreadLocal<Long> startTime = new ThreadLocal<>();
     private ThreadLocal<String> requestMobile = new ThreadLocal<>();
@@ -74,13 +74,13 @@ public class ApiHandler {
     public void doAfterReturning(Object ret) throws Throwable {
         logger.info("SPEND TIME : " + (System.currentTimeMillis() - startTime.get()));
         // 记录用户请求，防止请求频率过高
-        cacheService.set(requestMobile.get(), 0, 1000L);
+        myCacheService.set(requestMobile.get(), 0, 1000L);
     }
 
     private void checkUserFrequency(String mobileNumber) {
         String requestKey = USER_SECKILL_REQUEST_PREFIX + mobileNumber;
         requestMobile.set(requestKey);
-        if (cacheService.exists(requestKey)) {
+        if (myCacheService.exists(requestKey)) {
             throw new RuntimeException("你不累嘛，歇会！！！");
         }
     }

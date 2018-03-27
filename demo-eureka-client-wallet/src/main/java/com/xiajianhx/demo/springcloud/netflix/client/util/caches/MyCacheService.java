@@ -3,7 +3,7 @@ package com.xiajianhx.demo.springcloud.netflix.client.util.caches;
 import java.util.List;
 import java.util.Set;
 
-public interface CacheService {
+public interface MyCacheService {
     boolean set(final String key, Object value);
 
     boolean set(final String key, Object value, Long expireTime);
@@ -29,6 +29,8 @@ public interface CacheService {
     void hmSet(String key, Object hashKey, Object value);
 
     Object hmGet(String key, Object hashKey);
+
+    List<Object> hmGetValues(String key);
 
     void lPush(String k, Object v);
 
